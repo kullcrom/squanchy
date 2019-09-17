@@ -20,3 +20,30 @@ type Property struct {
 	Assessment assessment.Assessment
 	Vintage    vintage.Vintage
 }
+
+func NewProperty(
+	identifier Identifier,
+	lot Lot,
+	area Area,
+	address Address,
+	location Location,
+	summary Summary,
+	utilities Utilities,
+	sale sale.Sale,
+	building building.Building,
+	assessment assessment.Assessment,
+	vintage vintage.Vintage) Property {
+	return Property{
+		Identifier: identifier,
+		Lot:        lot,
+		Area:       area,
+		Address:    address,
+		Location:   location,
+		Summary:    summary,
+		Utilities:  utilities,
+		Sale:       sale,
+		Building:   building,
+		Assessment: assessment,
+		Vintage:    vintage,
+	}
+}
