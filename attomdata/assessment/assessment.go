@@ -6,13 +6,14 @@ import (
 	"github.com/kullcrom/squanchy/attomdata/tax"
 )
 
+//Assessment ...
 type Assessment struct {
-	Appraised          Appraised
-	Assessed           Assessed
-	Market             Market
-	Tax                tax.Tax
-	DelinquentYear     int
-	ImprovementPercent int
-	Owner              owner.Owner
-	Mortgage           mortgage.Mortgage
+	Appraised          Appraised         `json:"appraised"`
+	Assessed           Assessed          `json:"assessed"`
+	Market             Market            `json:"market"`
+	Tax                tax.Tax           `json:"tax"`
+	DelinquentYear     int               `json:"delinquentyear"`
+	ImprovementPercent int               `json:"improvementPercent"`
+	Owner              owner.Owner       `json:"owner"`
+	Mortgage           mortgage.Mortgage `json:"mortgage"`
 }

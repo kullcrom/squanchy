@@ -1,11 +1,11 @@
 package basicprofile
 
 type EchoedFields struct {
-	JobID       string
-	LoanNumber  string
-	PreparedBy  string
-	ResellerID  string
-	PreparedFor string
+	JobID       string `json:"jobID"`
+	LoanNumber  string `json:"loanNumber"`
+	PreparedBy  string `json:"preparedBy"`
+	ResellerID  string `json:"resellerID"`
+	PreparedFor string `json:"preparedFor"`
 }
 
 func NewEchoedFields(

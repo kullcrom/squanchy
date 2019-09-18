@@ -1,15 +1,17 @@
 package assessment
 
+//Market ...
 type Market struct {
-	MktImprValue float32
-	MktLandValue float32
-	MktTtlValue  float32
+	MktImprValue float32 `json:"mktImprValue"`
+	MktLandValue float32 `json:"mktLandValue"`
+	MktTTLValue  float32 `json:"mktTtlValue"`
 }
 
-func NewMarket(mktImprValue float32, mktLandValue float32, mktTtlValue float32) Market {
+//NewMarket ...
+func NewMarket(mktImprValue float32, mktLandValue float32, mktTTLValue float32) Market {
 	return Market{
 		MktImprValue: mktImprValue,
 		MktLandValue: mktLandValue,
-		MktTtlValue:  mktTtlValue,
+		MktTTLValue:  mktTTLValue,
 	}
 }

@@ -1,12 +1,14 @@
 package building
 
+//Interior ...
 type Interior struct {
-	BsmtSize  int
-	FplcCount int
-	FplcInd   string
-	FplcType  string
+	BsmtSize  int    `json:"bsmtSize"`
+	FplcCount int    `json:"fplcCount"`
+	FplcInd   string `json:"fplcInd"`
+	FplcType  string `json:"fplcType"`
 }
 
+//NewInterior ...
 func NewInterior(bsmtSize int, fplcCount int, fplcInd string, fplcType string) Interior {
 	return Interior{
 		BsmtSize:  bsmtSize,

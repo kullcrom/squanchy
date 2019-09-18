@@ -1,17 +1,19 @@
 package building
 
+//Rooms ...
 type Rooms struct {
-	BathFixtures int
-	Baths1qtr    int
-	Baths3qtr    int
-	BathsCalc    float32
-	BathsFull    int
-	BathsHalf    int
-	BathsTotal   float32
-	Beds         int
-	RoomsTotal   int
+	BathFixtures int     `json:"bathFixtures"`
+	Baths1qtr    int     `json:"baths1qtr"`
+	Baths3qtr    int     `json:"baths3qtr"`
+	BathsCalc    float32 `json:"bathsCalc"`
+	BathsFull    int     `json:"bathsFull"`
+	BathsHalf    int     `json:"bathsHalf"`
+	BathsTotal   float32 `json:"bathsTotal"`
+	Beds         int     `json:"beds"`
+	RoomsTotal   int     `json:"roomsTotal"`
 }
 
+//NewRooms ...
 func NewRooms(
 	bathFixtures int,
 	baths1qtr int,

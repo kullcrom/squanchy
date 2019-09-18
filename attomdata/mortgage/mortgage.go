@@ -1,11 +1,13 @@
 package mortgage
 
+//Mortgage ...
 type Mortgage struct {
-	FirstConcurrent  FirstConcurrent
-	SecondConcurrent SecondConcurrent
-	ThirdConcurrent  ThirdConcurrent
+	FirstConcurrent  FirstConcurrent  `json:"FirstConcurrent"`
+	SecondConcurrent SecondConcurrent `json:"SecondConcurrent"`
+	ThirdConcurrent  ThirdConcurrent  `json:"ThirdConcurrent"`
 }
 
+//NewMortgage ...
 func NewMortgage(
 	firstConcurrent FirstConcurrent,
 	secondConcurrent SecondConcurrent,

@@ -1,14 +1,14 @@
 package basicprofile
 
 type Status struct {
-	Version          string
-	Code             int
-	Msg              string
-	Total            int
-	Page             int
-	PageSize         int
-	ResponseDateTime string
-	TransactionID    string
+	Version          string `json:"version"`
+	Code             int    `json:"code"`
+	Msg              string `json:"msg"`
+	Total            int    `json:"total"`
+	Page             int    `json:"page"`
+	PageSize         int    `json:"pagesize"`
+	ResponseDateTime string `json:"responseDateTime"`
+	TransactionID    string `json:"transactionID"`
 }
 
 func NewStatus(

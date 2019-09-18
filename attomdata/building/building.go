@@ -1,14 +1,16 @@
 package building
 
+//Building ...
 type Building struct {
-	Size         Size
-	Rooms        Rooms
-	Interior     Interior
-	Construction Construction
-	Parking      Parking
-	Summary      Summary
+	Size         Size         `json:"size"`
+	Rooms        Rooms        `json:"rooms"`
+	Interior     Interior     `json:"interior"`
+	Construction Construction `json:"construction"`
+	Parking      Parking      `json:"parking"`
+	Summary      Summary      `json:"summary"`
 }
 
+//NewBuilding ...
 func NewBuilding(
 	size Size,
 	rooms Rooms,

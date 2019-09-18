@@ -1,13 +1,15 @@
 package property
 
+//Lot ...
 type Lot struct {
-	Depth      float32
-	Frontage   float32
-	LotSize1   float32
-	LotSize2   float32
-	ZoningType string
+	Depth      float32 `json:"depth"`
+	Frontage   float32 `json:"frontage"`
+	LotSize1   float32 `json:"lotSize1"`
+	LotSize2   float32 `json:"lotSize2"`
+	ZoningType string  `json:"zoningType"`
 }
 
+//NewLot ...
 func NewLot(depth float32, frontage float32, lotSize1 float32, lotSize2 float32, zoningType string) Lot {
 	return Lot{
 		Depth:      depth,

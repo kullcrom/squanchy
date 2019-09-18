@@ -1,15 +1,17 @@
 package assessment
 
+//Assessed ...
 type Assessed struct {
-	AssdImprValue float32
-	AssdLandValue float32
-	AssdTtlValue  float32
+	AssdImprValue float32 `json:"assdImprValue"`
+	AssdLandValue float32 `json:"assdLandValue"`
+	AssdTTLValue  float32 `json:"assdTtlValue"`
 }
 
-func NewAssessed(assdImprValue float32, assdLandValue float32, assdTtlValue float32) Assessed {
+//NewAssessed ...
+func NewAssessed(assdImprValue float32, assdLandValue float32, assdTTLValue float32) Assessed {
 	return Assessed{
 		AssdImprValue: assdImprValue,
 		AssdLandValue: assdLandValue,
-		AssdTtlValue:  assdTtlValue,
+		AssdTTLValue:  assdTTLValue,
 	}
 }

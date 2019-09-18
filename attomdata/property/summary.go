@@ -1,16 +1,18 @@
 package property
 
+//Summary ...
 type Summary struct {
-	AbsenteeInd   string
-	PropClass     string
-	PropSubType   string
-	PropType      string
-	YearBuilt     int
-	PropLandUse   string
-	PropIndicator int
-	Legal1        string
+	AbsenteeInd   string `json:"absenteeInd"`
+	PropClass     string `json:"propClass"`
+	PropSubType   string `json:"propSubType"`
+	PropType      string `json:"propType"`
+	YearBuilt     int    `json:"yearBuilt"`
+	PropLandUse   string `json:"propLandUse"`
+	PropIndicator int    `json:"propIndicator"`
+	Legal1        string `json:"legal1"`
 }
 
+//NewSummary ...
 func NewSummary(
 	absenteeInd string,
 	propClass string,

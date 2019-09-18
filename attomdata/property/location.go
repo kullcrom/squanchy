@@ -1,14 +1,16 @@
 package property
 
+//Location ...
 type Location struct {
-	Accuracy  string
-	Elevation float32
-	Latitude  string
-	Longitude string
-	Distance  float32
-	GeoID     string
+	Accuracy  string  `json:"accuracy"`
+	Elevation float32 `json:"elevation"`
+	Latitude  string  `json:"latitude"`
+	Longitude string  `json:"longitude"`
+	Distance  float32 `json:"distance"`
+	GeoID     string  `json:"geoid"`
 }
 
+//NewLocation ...
 func NewLocation(
 	accuracy string,
 	elevation float32,

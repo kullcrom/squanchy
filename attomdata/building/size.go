@@ -1,16 +1,18 @@
 package building
 
+//Size ...
 type Size struct {
-	BldgSize          float32
-	GrossSize         float32
-	GrossSizeAdjusted float32
-	GroundFloorSize   float32
-	LivingSize        float32
-	SizeInd           string
-	UniversalSize     float32
-	AtticSize         float32
+	BldgSize          float32 `json:"bldgSize"`
+	GrossSize         float32 `json:"grossSize"`
+	GrossSizeAdjusted float32 `json:"grossSizeAdjusted"`
+	GroundFloorSize   float32 `json:"groundFloorSize"`
+	LivingSize        float32 `json:"livingSize"`
+	SizeInd           string  `json:"sizeInd"`
+	UniversalSize     float32 `json:"universalSize"`
+	AtticSize         float32 `json:"atticSize"`
 }
 
+//NewSize ...
 func NewSize(
 	bldgSize float32,
 	grossSize float32,

@@ -1,11 +1,13 @@
 package property
 
+//Utilities ...
 type Utilities struct {
-	CoolingType string
-	EnergyType  string
-	WallType    string
+	CoolingType string `json:"coolingType"`
+	EnergyType  string `json:"energyType"`
+	WallType    string `json:"wallType"`
 }
 
+//NewUtilities ...
 func NewUtilities(coolingType string, energyType string, wallType string) Utilities {
 	return Utilities{
 		CoolingType: coolingType,
