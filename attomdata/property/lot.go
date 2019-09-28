@@ -10,12 +10,18 @@ type Lot struct {
 }
 
 //NewLot ...
-func NewLot(depth float32, frontage float32, lotSize1 float32, lotSize2 float32, zoningType string) Lot {
-	return Lot{
+func NewLot(
+	depth float32,
+	frontage float32,
+	lotSize1 float32,
+	lotSize2 float32,
+	zoningType string) *Lot {
+	lot := Lot{
 		Depth:      depth,
 		Frontage:   frontage,
 		LotSize1:   lotSize1,
 		LotSize2:   lotSize2,
 		ZoningType: zoningType,
 	}
+	return &lot
 }
