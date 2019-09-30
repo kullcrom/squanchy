@@ -2,8 +2,10 @@ package db
 
 import (
 	"database/sql"
+	"errors"
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/kullcrom/squanchy/types"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
 )
@@ -22,62 +24,92 @@ func Connect() (db *sql.DB) {
 }
 
 //CreateUser creates a new User in the users table.
-func CreateUser(user types.User) bool {
+func CreateUser(user types.User) (types.UserResponse, error) {
 	db := Connect()
 
-	checkUser := GetUserByEmail(user.Email)
+	newUser := *types.NewUserResponse(user.Email, user.FirstName, user.LastName)
+
+	checkUser, err := GetUserByEmail(user.Email)
+	if err != nil {
+		return newUser, err
+	}
 	if checkUser.ID != 0 {
-		return false
+		existingUser := *types.NewUserResponse(checkUser.Email, checkUser.FirstName, checkUser.LastName)
+		return existingUser, errors.New("User already exists")
 	}
 
-	insert, err := db.Prepare("INSERT INTO users (email, first_name, last_name) VALUES (?, ?, ?)")
+	insert, err := db.Prepare("INSERT INTO users (email, password, first_name, last_name) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		log.Fatal(err)
+		return newUser, err
 	}
 
-	result, err := insert.Exec(user.Email, user.FirstName, user.LastName)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Fatal(err)
+		return newUser, err
+	}
+
+	result, err := insert.Exec(user.Email, hashedPassword, user.FirstName, user.LastName)
+	if err != nil {
+		return newUser, err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Fatal(err)
+		return newUser, err
 	}
 	log.Printf("Creating user for %v %v... %v row(s) affected.", user.FirstName, user.LastName, rows)
 
 	defer db.Close()
 	if rows <= 0 {
-		return false
+		return newUser, errors.New("An error may have occurred when inserting the user as no rows were affected")
 	}
-	return true
+	return newUser, nil
 }
 
 //DeleteUser deletes the specified User from the users table.
-func DeleteUser(user types.User) bool {
+func DeleteUser(user types.User) (types.UserResponse, error) {
 	db := Connect()
+
+	userToDelete, err := GetUserByEmail(user.Email)
+	if err != nil {
+		return types.UserResponse{
+			Email:     userToDelete.Email,
+			FirstName: userToDelete.FirstName,
+			LastName:  userToDelete.LastName,
+		}, err
+	}
+
+	if userToDelete.ID == 0 {
+		return types.UserResponse{
+			Email:     user.Email,
+			FirstName: user.FirstName,
+			LastName:  user.LastName,
+		}, errors.New("User does not exist and therefore cannot be deleted")
+	}
+
+	deletedUser := *types.NewUserResponse(userToDelete.Email, userToDelete.FirstName, userToDelete.LastName)
 
 	delete, err := db.Prepare("DELETE FROM users WHERE id=?")
 	if err != nil {
-		log.Fatal(err)
+		return deletedUser, err
 	}
 
 	result, err := delete.Exec(user.ID)
 	if err != nil {
-		log.Fatal(err)
+		return deletedUser, err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Fatal(err)
+		return deletedUser, err
 	}
 	log.Printf("Deleting user %v %v... %v row(s) affected.", user.FirstName, user.LastName, rows)
 
 	defer db.Close()
 	if rows <= 0 {
-		return false
+		return deletedUser, errors.New("An error may have occurred when deleting the user, as no rows were affected")
 	}
-	return true
+	return deletedUser, nil
 }
 
 //GetUserByID queries the database for the specific user based on the user's ID.
@@ -110,21 +142,23 @@ func GetUserByID(id int) types.User {
 }
 
 //GetUserByEmail queries the database for the specific user based on the user's email.
-func GetUserByEmail(email string) types.User {
+func GetUserByEmail(email string) (types.User, error) {
 	db := Connect()
+
+	user := types.User{}
+	user.Email = email
 
 	result, err := db.Query("SELECT * FROM users WHERE email=?", email)
 	if err != nil {
-		log.Fatal(err)
+		return user, err
 	}
 
-	user := types.User{}
 	for result.Next() {
 		var id int
 		var email, firstName, lastName string
 		err := result.Scan(&id, &email, &firstName, &lastName)
 		if err != nil {
-			log.Fatal(err)
+			return user, err
 		}
 
 		user.ID = id
@@ -134,5 +168,5 @@ func GetUserByEmail(email string) types.User {
 	}
 
 	defer db.Close()
-	return user
+	return user, nil
 }
