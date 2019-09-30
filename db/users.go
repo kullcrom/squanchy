@@ -107,7 +107,7 @@ func DeleteUser(user types.User) (types.UserResponse, error) {
 
 	defer db.Close()
 	if rows <= 0 {
-		return deletedUser, errors.New("An error may have occurred when deleting the user, as no rows were affected")
+		return deletedUser, errors.New("An error may have occurred when deleting the user as no rows were affected")
 	}
 	return deletedUser, nil
 }
