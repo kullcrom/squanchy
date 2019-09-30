@@ -145,27 +145,21 @@ func GetUserByID(id int) types.User {
 func GetUserByEmail(email string) (types.User, error) {
 	db := Connect()
 
-	user := types.User{}
-	user.Email = email
+	result := db.QueryRow("SELECT * FROM users WHERE email=?", email)
 
-	result, err := db.Query("SELECT * FROM users WHERE email=?", email)
+	user := types.User{}
+	var id int
+	var queryEmail, password, firstName, lastName string
+	err := result.Scan(&id, &queryEmail, &password, &firstName, &lastName)
 	if err != nil {
 		return user, err
 	}
 
-	for result.Next() {
-		var id int
-		var email, firstName, lastName string
-		err := result.Scan(&id, &email, &firstName, &lastName)
-		if err != nil {
-			return user, err
-		}
-
-		user.ID = id
-		user.Email = email
-		user.FirstName = firstName
-		user.LastName = lastName
-	}
+	user.ID = id
+	user.Email = queryEmail
+	user.Password = password
+	user.FirstName = firstName
+	user.LastName = lastName
 
 	defer db.Close()
 	return user, nil
