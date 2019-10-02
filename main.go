@@ -3,9 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/kullcrom/squanchy/attomdata/basicprofile"
-	"github.com/kullcrom/squanchy/db"
-	"github.com/kullcrom/squanchy/types"
+	"github.com/kullcrom/squanchy/controllers"
 	"log"
 	"net/http"
 )
@@ -38,21 +36,7 @@ func address(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	user1 := new(types.User)
-	user1.Email = "name@email.com"
-	user1.FirstName = "Billy-Bob"
-	user1.LastName = "Thorton"
-
-	// db.CreateUser(*user1)
-	// db.DeleteUser(*user1)
-	user2 := db.GetUserByID(2)
-	output, err := json.Marshal(user2)
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(string(output))
-
-	http.HandleFunc("/", basicprofile.GetBasicProfile)
-	http.HandleFunc("/address", address)
+	http.HandleFunc("/users", controllers.GetUsers)
+	http.HandleFunc("/users/", controllers.GetUserByID)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
