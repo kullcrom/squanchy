@@ -19,6 +19,7 @@ city - VARCHAR(20)
 state - VARCHAR(2)
 purchase_price - FLOAT
 exit_strategy - SMALLINT
+PRIMARY KEY - (id)
 ```
 
 Can we calculate taxes and insurance based on industry and state rates?
