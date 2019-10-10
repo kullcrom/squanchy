@@ -26,7 +26,7 @@ func Authenticate(r *http.Request, pool *redis.Pool) (bool, error) {
 	}
 
 	if response == nil {
-		return false, errors.New("Error: Redis response cannot be nil")
+		return false, errors.New("ERROR: Redis response cannot be nil")
 	}
 	return true, nil
 }
