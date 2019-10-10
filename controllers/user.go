@@ -1,16 +1,14 @@
 package controllers
 
 import (
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"github.com/gomodule/redigo/redis"
 	"github.com/kullcrom/squanchy/db"
+	"github.com/kullcrom/squanchy/services"
 	"github.com/kullcrom/squanchy/types"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -68,7 +66,7 @@ func (h LoginHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 		// If creds are valid, generate a token and create session to log user in. Save session info
 		// to Redis for quick session authentication and set-cookie for session.
-		sessionToken, err := generateSessionToken()
+		sessionToken, err := auth.GenerateSessionToken()
 		if err != nil || sessionToken == "" {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
@@ -140,21 +138,4 @@ func GetUserByID(w http.ResponseWriter, r *http.Request) {
 		}
 		w.Write(output)
 	}
-}
-
-func generateSessionToken() (string, error) {
-	sessionTokenModifier, err := strconv.Atoi(os.Getenv("SESSION_TOKEN_MODIFIER"))
-	if err != nil {
-		log.Println(err)
-	}
-
-	byteArray := make([]byte, sessionTokenModifier)
-
-	_, err = rand.Read(byteArray)
-	if err != nil {
-		log.Println(err)
-	}
-
-	token := base64.URLEncoding.EncodeToString(byteArray)
-	return token, nil
 }
