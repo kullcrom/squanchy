@@ -59,7 +59,7 @@ func (h RegistrationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if err != nil || sessionToken == "" {
 			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Error: Session token cannot be nil"))
+			w.Write([]byte("ERROR: Session token cannot be nil"))
 			return
 		}
 
