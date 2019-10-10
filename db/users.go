@@ -24,15 +24,15 @@ func Connect() (db *sql.DB) {
 }
 
 //CreateUser creates a new User in the users table.
-func CreateUser(user types.User) (types.User, error) {
+func CreateUser(email string, password string) error {
 	db := Connect()
 
-	checkUser, err := GetUserByEmail(user.Email)
+	checkUser, err := GetUserByEmail(email)
 	if err != nil {
 		log.Println(err)
 	}
 	if checkUser.ID != 0 {
-		return checkUser, errors.New("ERROR: User already exists")
+		return errors.New("ERROR: User already exists")
 	}
 
 	insert, err := db.Prepare("INSERT INTO users (email, password, first_name, last_name) VALUES (?, ?, ?, ?)")
@@ -40,12 +40,12 @@ func CreateUser(user types.User) (types.User, error) {
 		log.Println(err)
 	}
 
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		log.Println(err)
 	}
 
-	result, err := insert.Exec(user.Email, hashedPassword, user.FirstName, user.LastName)
+	result, err := insert.Exec(email, hashedPassword, "", "")
 	if err != nil {
 		log.Println(err)
 	}
@@ -54,18 +54,13 @@ func CreateUser(user types.User) (types.User, error) {
 	if err != nil {
 		log.Println(err)
 	}
-	log.Printf("Creating user for %v %v... %v row(s) affected.", user.FirstName, user.LastName, rows)
-
-	newUser, err := GetUserByEmail(user.Email)
-	if err != nil {
-		log.Println(err)
-	}
+	log.Printf("Creating user for %v... %v row(s) affected.", email, rows)
 
 	defer db.Close()
 	if rows <= 0 {
-		return newUser, errors.New("ERROR: No rows were affected")
+		return errors.New("ERROR: No rows were affected")
 	}
-	return newUser, nil
+	return nil
 }
 
 //DeleteUserByEmail deletes the specified User from the users table.
