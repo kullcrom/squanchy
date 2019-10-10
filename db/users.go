@@ -62,44 +62,40 @@ func CreateUser(email string, password string) error {
 }
 
 //DeleteUserByEmail deletes the specified User from the users table.
-func DeleteUserByEmail(user types.User) (types.User, error) {
+func DeleteUserByEmail(email string) error {
 	db := Connect()
+	defer db.Close()
 
-	userToDelete, err := GetUserByEmail(user.Email)
+	userToDelete, err := GetUserByEmail(email)
 	if err != nil {
-		return user, err
-	}
-
-	if userToDelete.ID == 0 {
-		return user, errors.New("ERROR: User not found")
+		return err
 	}
 
 	delete, err := db.Prepare("DELETE FROM users WHERE id=?")
 	if err != nil {
-		return user, err
+		return err
 	}
 
-	result, err := delete.Exec(user.ID)
+	result, err := delete.Exec(userToDelete.ID)
 	if err != nil {
-		return user, err
+		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		return user, err
+		return err
+	} else if rows <= 0 {
+		return errors.New("ERROR: No rows were affected")
 	}
-	log.Printf("Deleting user %v %v... %v row(s) affected.", user.FirstName, user.LastName, rows)
 
-	defer db.Close()
-	if rows <= 0 {
-		return user, errors.New("ERROR: No rows were affected")
-	}
-	return user, nil
+	log.Printf("Deleting user %v... %v row(s) affected.", email, rows)
+	return nil
 }
 
 //GetUserByID queries the database for the specific user based on the user's ID.
 func GetUserByID(id int) (types.User, error) {
 	db := Connect()
+	defer db.Close()
 
 	user := types.User{}
 	result, err := db.Query("SELECT * FROM users WHERE id=?", id)
@@ -122,14 +118,13 @@ func GetUserByID(id int) (types.User, error) {
 		user.LastName = lastName
 	}
 
-	log.Printf("Found user %v %v", user.FirstName, user.LastName)
-	defer db.Close()
 	return user, nil
 }
 
 //GetUserByEmail queries the database for the specific user based on the user's email.
 func GetUserByEmail(email string) (types.User, error) {
 	db := Connect()
+	defer db.Close()
 
 	result := db.QueryRow("SELECT * FROM users WHERE email=?", email)
 
@@ -147,13 +142,13 @@ func GetUserByEmail(email string) (types.User, error) {
 	user.FirstName = firstName
 	user.LastName = lastName
 
-	defer db.Close()
 	return user, nil
 }
 
 //GetAllUsers ...
 func GetAllUsers() ([]types.User, error) {
 	db := Connect()
+	defer db.Close()
 
 	var users []types.User
 
@@ -179,6 +174,5 @@ func GetAllUsers() ([]types.User, error) {
 		users = append(users, user)
 	}
 
-	defer db.Close()
 	return users, nil
 }
