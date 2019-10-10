@@ -26,40 +26,38 @@ func Connect() (db *sql.DB) {
 //CreateUser creates a new User in the users table.
 func CreateUser(email string, password string) error {
 	db := Connect()
+	defer db.Close()
 
 	checkUser, err := GetUserByEmail(email)
 	if err != nil {
-		log.Println(err)
-	}
-	if checkUser.ID != 0 {
+		return err
+	} else if checkUser.ID != 0 {
 		return errors.New("ERROR: User already exists")
 	}
 
 	insert, err := db.Prepare("INSERT INTO users (email, password, first_name, last_name) VALUES (?, ?, ?, ?)")
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	result, err := insert.Exec(email, hashedPassword, "", "")
 	if err != nil {
-		log.Println(err)
+		return err
 	}
 
 	rows, err := result.RowsAffected()
 	if err != nil {
-		log.Println(err)
-	}
-	log.Printf("Creating user for %v... %v row(s) affected.", email, rows)
-
-	defer db.Close()
-	if rows <= 0 {
+		return err
+	} else if rows <= 0 {
 		return errors.New("ERROR: No rows were affected")
 	}
+
+	log.Printf("Creating user for %v... %v row(s) affected.", email, rows)
 	return nil
 }
 
