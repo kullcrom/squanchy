@@ -176,3 +176,33 @@ func GetAllUsers() ([]types.User, error) {
 
 	return users, nil
 }
+
+//UpdateUser ...
+func UpdateUser(user *types.User) error {
+	db := Connect()
+	defer db.Close()
+
+	checkUser, err := GetUserByEmail(user.Email)
+	if err != nil {
+		return err
+	}
+
+	update, err := db.Prepare("UPDATE users SET email = ?, first_name = ?, last_name = ? WHERE id = ?")
+	if err != nil {
+		return err
+	}
+
+	result, err := update.Exec(user.Email, user.FirstName, user.LastName, checkUser.ID)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	} else if rows <= 0 {
+		return errors.New("ERROR: No rows were affected")
+	}
+
+	return nil
+}

@@ -21,7 +21,7 @@ type RegistrationHandler struct {
 	Pool *redis.Pool
 }
 
-func (h RegistrationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h RegistrationHandler) HandleRegistration(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
 	w.Header().Set("Access-Control-Allow-Credentials", "true")
