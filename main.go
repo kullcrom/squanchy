@@ -21,10 +21,16 @@ func main() {
 
 	loginHandler := controllers.LoginHandler{Pool: pool}
 	registrationHandler := controllers.RegistrationHandler{Pool: pool}
+	profileHandler := controllers.ProfileHandler{Pool: pool}
 
-	http.HandleFunc("/login", loginHandler.ServeHTTP)
-	http.HandleFunc("/register", registrationHandler.ServeHTTP)
+	http.HandleFunc("/login", loginHandler.HandleLogin)
+	http.HandleFunc("/register", registrationHandler.HandleRegistration)
+	http.HandleFunc("/profile", profileHandler.HandleProfile)
+	http.HandleFunc("/profile/update", profileHandler.HandleProfileUpdate)
+
+	// API endpoints
 	http.HandleFunc("/users", controllers.GetUsers)
 	http.HandleFunc("/users/", controllers.GetUserByID)
+
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
