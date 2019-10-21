@@ -2,13 +2,14 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/redigo/redis"
 	"github.com/kullcrom/squanchy/db"
-	"github.com/kullcrom/squanchy/services"
 	"github.com/kullcrom/squanchy/types"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -24,7 +25,7 @@ type LoginHandler struct {
 	Pool *redis.Pool
 }
 
-//UserLogin ...
+//HandleLogin ...
 func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -35,10 +36,6 @@ func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	// Check Request Method. Handle only POST for login.
 	switch r.Method {
 	case http.MethodPost:
-		pool := h.Pool
-		conn := pool.Get()
-		defer conn.Close()
-
 		// Query DB for existing User. If found, compare hashed password with provided password.
 		// If not found, then return "invalid username/password"
 		var creds loginCreds
@@ -64,29 +61,35 @@ func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		// If creds are valid, generate a token and create session to log user in. Save session info
-		// to Redis for quick session authentication and set-cookie for session.
-		sessionToken, err := auth.GenerateSessionToken()
-		if err != nil || sessionToken == "" {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("Error: Session token cannot be nil"))
-			return
+		jwtKey, exists := os.LookupEnv("JWT_SECRET_KEY")
+		if !exists {
+			panic("ERROR: JWT_SECRET_KEY not found")
 		}
 
-		_, err = conn.Do("SETEX", sessionToken, "300", creds.Username)
+		var jwtSecretKey = []byte(jwtKey)
+
+		expiration := time.Now().Add(5 * time.Minute)
+		claims := &types.Claims{
+			Username: creds.Username,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expiration.Unix(),
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString(jwtSecretKey)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 
 		cookie := http.Cookie{
-			Name:    "session_token",
-			Value:   sessionToken,
-			Expires: time.Now().Add(5 * time.Minute),
+			Name:    "jwt_token",
+			Value:   tokenString,
+			Expires: expiration,
 		}
 		http.SetCookie(w, &cookie)
-		w.Write([]byte("Token: " + sessionToken))
+		w.Write([]byte("jwt_token: " + tokenString))
 	case http.MethodOptions:
 		w.WriteHeader(http.StatusOK)
 		return
