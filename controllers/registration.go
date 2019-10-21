@@ -2,11 +2,13 @@ package controllers
 
 import (
 	"encoding/json"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/gomodule/redigo/redis"
 	"github.com/kullcrom/squanchy/db"
-	"github.com/kullcrom/squanchy/services"
+	"github.com/kullcrom/squanchy/types"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -21,6 +23,7 @@ type RegistrationHandler struct {
 	Pool *redis.Pool
 }
 
+//HandleRegistration ...
 func (h RegistrationHandler) HandleRegistration(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Methods", "POST")
 	w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
@@ -51,29 +54,32 @@ func (h RegistrationHandler) HandleRegistration(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		pool := h.Pool
-		conn := pool.Get()
-		defer conn.Close()
-
-		sessionToken, err := auth.GenerateSessionToken()
-		if err != nil || sessionToken == "" {
-			log.Println(err)
-			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte("ERROR: Session token cannot be nil"))
-			return
+		jwtKey, exists := os.LookupEnv("JWT_SECRET_KEY")
+		if !exists {
+			panic("ERROR: JWT_SECRET_KEY not found")
 		}
 
-		_, err = conn.Do("SETEX", sessionToken, "300", user.Username)
+		var jwtSecretKey = []byte(jwtKey)
+
+		expiration := time.Now().Add(5 * time.Minute)
+		claims := &types.Claims{
+			Username: user.Username,
+			StandardClaims: jwt.StandardClaims{
+				ExpiresAt: expiration.Unix(),
+			},
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		tokenString, err := token.SignedString(jwtSecretKey)
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
-			w.Write([]byte(err.Error()))
 			return
 		}
 
 		cookie := http.Cookie{
-			Name:    "session_token",
-			Value:   sessionToken,
-			Expires: time.Now().Add(5 * time.Minute),
+			Name:    "jwt_token",
+			Value:   tokenString,
+			Expires: expiration,
 		}
 
 		http.SetCookie(w, &cookie)
