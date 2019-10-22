@@ -2,16 +2,11 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gomodule/redigo/redis"
 	"github.com/kullcrom/squanchy/db"
-	"github.com/kullcrom/squanchy/types"
+	"github.com/kullcrom/squanchy/services"
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"net/http"
-	"os"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -20,9 +15,9 @@ type loginCreds struct {
 	Password string
 }
 
-//LoginHandler is a custom handler that takes a global Redis Pool connection
+//LoginHandler is a custom handler that takes a JWT secret key
 type LoginHandler struct {
-	Pool *redis.Pool
+	JWTSecretKey string
 }
 
 //HandleLogin ...
@@ -61,24 +56,9 @@ func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		jwtKey, exists := os.LookupEnv("JWT_SECRET_KEY")
-		if !exists {
-			panic("ERROR: JWT_SECRET_KEY not found")
-		}
-
-		var jwtSecretKey = []byte(jwtKey)
-
 		expiration := time.Now().Add(5 * time.Minute)
-		claims := &types.Claims{
-			Username: creds.Username,
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: expiration.Unix(),
-			},
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString(jwtSecretKey)
-		if err != nil {
+		tokenString, err := auth.GenerateToken(h.JWTSecretKey, expiration, creds.Username)
+		if err != nil || tokenString == "" {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
@@ -96,49 +76,5 @@ func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 	default:
 		w.WriteHeader(http.StatusBadRequest)
 		return
-	}
-}
-
-//GetUsers ...
-func GetUsers(w http.ResponseWriter, r *http.Request) {
-	users := []types.User{}
-
-	users, err := db.GetAllUsers()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	output, err := json.Marshal(users)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	w.Write(output)
-}
-
-//GetUserByID ...
-func GetUserByID(w http.ResponseWriter, r *http.Request) {
-	idString := strings.TrimPrefix(r.URL.Path, "/users/")
-
-	id, err := strconv.Atoi(idString)
-	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		log.Printf("Invalid ID. Must be of type integer.")
-	} else {
-		user, err := db.GetUserByID(id)
-		if err != nil {
-			log.Println(err)
-		}
-
-		w.Header().Set("Content-Type", "application/json")
-		w.WriteHeader(http.StatusOK)
-
-		output, err := json.Marshal(user)
-		if err != nil {
-			log.Println(err)
-		}
-		w.Write(output)
 	}
 }

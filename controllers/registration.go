@@ -2,13 +2,10 @@ package controllers
 
 import (
 	"encoding/json"
-	"github.com/dgrijalva/jwt-go"
-	"github.com/gomodule/redigo/redis"
 	"github.com/kullcrom/squanchy/db"
-	"github.com/kullcrom/squanchy/types"
+	"github.com/kullcrom/squanchy/services"
 	"log"
 	"net/http"
-	"os"
 	"time"
 )
 
@@ -20,7 +17,7 @@ type userRegistration struct {
 
 //RegistrationHandler is a custom handler that takes a global Redis pool connection
 type RegistrationHandler struct {
-	Pool *redis.Pool
+	JWTSecretKey string
 }
 
 //HandleRegistration ...
@@ -54,24 +51,9 @@ func (h RegistrationHandler) HandleRegistration(w http.ResponseWriter, r *http.R
 			return
 		}
 
-		jwtKey, exists := os.LookupEnv("JWT_SECRET_KEY")
-		if !exists {
-			panic("ERROR: JWT_SECRET_KEY not found")
-		}
-
-		var jwtSecretKey = []byte(jwtKey)
-
 		expiration := time.Now().Add(5 * time.Minute)
-		claims := &types.Claims{
-			Username: user.Username,
-			StandardClaims: jwt.StandardClaims{
-				ExpiresAt: expiration.Unix(),
-			},
-		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		tokenString, err := token.SignedString(jwtSecretKey)
-		if err != nil {
+		tokenString, err := auth.GenerateToken(h.JWTSecretKey, expiration, user.Username)
+		if err != nil || tokenString == "" {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}

@@ -1,36 +1,38 @@
 package main
 
 import (
-	"github.com/gomodule/redigo/redis"
+	"github.com/kullcrom/squanchy/api"
 	"github.com/kullcrom/squanchy/controllers"
+	"github.com/kullcrom/squanchy/middleware"
 	"log"
 	"net/http"
-	"time"
+	"os"
 )
 
-var pool *redis.Pool
+var jwtSecretKey string
 
 func main() {
-	pool = &redis.Pool{
-		MaxIdle:     10,
-		IdleTimeout: 240 * time.Second,
-		Dial: func() (redis.Conn, error) {
-			return redis.Dial("tcp", "localhost:6379")
-		},
+	jwtSecretKey, exists := os.LookupEnv("JWT_SECRET_KEY")
+	if !exists {
+		panic("ERROR: JWT_SECRET_KEY not found")
 	}
 
-	loginHandler := controllers.LoginHandler{Pool: pool}
-	registrationHandler := controllers.RegistrationHandler{Pool: pool}
-	profileHandler := controllers.ProfileHandler{Pool: pool}
+	authMiddleware := middleware.AuthMiddleware{JWTSecretKey: jwtSecretKey}
+
+	loginHandler := controllers.LoginHandler{JWTSecretKey: jwtSecretKey}
+	registrationHandler := controllers.RegistrationHandler{JWTSecretKey: jwtSecretKey}
+	profileHandler := controllers.ProfileHandler{}
+	updateProfileHandler := controllers.UpdateProfileHandler{}
 
 	http.HandleFunc("/login", loginHandler.HandleLogin)
 	http.HandleFunc("/register", registrationHandler.HandleRegistration)
-	http.HandleFunc("/profile", profileHandler.HandleProfile)
-	http.HandleFunc("/profile/update", profileHandler.HandleProfileUpdate)
+
+	http.Handle("/profile", authMiddleware.Authenticate(profileHandler))
+	http.Handle("/profile/update", authMiddleware.Authenticate(updateProfileHandler))
 
 	// API endpoints
-	http.HandleFunc("/users", controllers.GetUsers)
-	http.HandleFunc("/users/", controllers.GetUserByID)
+	http.HandleFunc("/users", api.GetUsers)
+	http.HandleFunc("/users/", api.GetUserByID)
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
