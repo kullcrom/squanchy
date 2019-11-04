@@ -16,7 +16,7 @@ func Connect() (db *sql.DB) {
 	if !exists {
 		panic("ERROR: DB_PASSWORD not found")
 	}
-	db, err := sql.Open("mysql", "root:"+dbPassword+"@/squanchy")
+	db, err := sql.Open("mysql", "tit_admin_user:"+dbPassword+"@/tit")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -126,23 +126,38 @@ func GetUserByEmail(email string) (types.User, error) {
 	db := Connect()
 	defer db.Close()
 
-	result := db.QueryRow("SELECT * FROM users WHERE email=?", email)
+	result := db.QueryRow("SELECT id, email, first_name, last_name FROM users WHERE email=?", email)
 
 	user := types.User{}
 	var id int
-	var queryEmail, password, firstName, lastName string
-	err := result.Scan(&id, &queryEmail, &password, &firstName, &lastName)
+	var queryEmail, firstName, lastName string
+	err := result.Scan(&id, &queryEmail, &firstName, &lastName)
 	if err != nil {
 		return user, err
 	}
 
 	user.ID = id
 	user.Email = queryEmail
-	user.Password = password
 	user.FirstName = firstName
 	user.LastName = lastName
 
 	return user, nil
+}
+
+//GetUserPasswordByEmail ...
+func GetUserPasswordByEmail(email string) (string, error) {
+	db := Connect()
+	defer db.Close()
+
+	result := db.QueryRow("SELECT (password) FROM users WHERE email=?", email)
+
+	var password string
+	err := result.Scan(&password)
+	if err != nil {
+		return "", err
+	}
+
+	return password, nil
 }
 
 //GetAllUsers ...
