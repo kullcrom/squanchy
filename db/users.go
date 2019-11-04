@@ -16,7 +16,7 @@ func Connect() (db *sql.DB) {
 	if !exists {
 		panic("ERROR: DB_PASSWORD not found")
 	}
-	db, err := sql.Open("mysql", "tit_admin_user:"+dbPassword+"@/tit")
+	db, err := sql.Open("mysql", "root:"+dbPassword+"@/tit")
 	if err != nil {
 		log.Fatal(err)
 	}
