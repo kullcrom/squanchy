@@ -8,6 +8,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"log"
 	"os"
+	"time"
 )
 
 //Connect will initialize a connection to the database.
@@ -16,7 +17,7 @@ func Connect() (db *sql.DB) {
 	if !exists {
 		panic("ERROR: DB_PASSWORD not found")
 	}
-	db, err := sql.Open("mysql", "root:"+dbPassword+"@/tit")
+	db, err := sql.Open("mysql", "root:"+dbPassword+"@/tit?parseTime=true")
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -30,12 +31,14 @@ func CreateUser(email string, password string) error {
 
 	checkUser, err := GetUserByEmail(email)
 	if err != nil {
-		return err
+		if err != sql.ErrNoRows {
+			return err
+		}
 	} else if checkUser.ID != 0 {
 		return errors.New("ERROR: User already exists")
 	}
 
-	insert, err := db.Prepare("INSERT INTO users (email, password, first_name, last_name) VALUES (?, ?, ?, ?)")
+	insert, err := db.Prepare("INSERT INTO users (email, password, first_name, last_name, created_on, last_login) VALUES (?, ?, ?, ?, ?, ?)")
 	if err != nil {
 		return err
 	}
@@ -45,7 +48,7 @@ func CreateUser(email string, password string) error {
 		return err
 	}
 
-	result, err := insert.Exec(email, hashedPassword, "", "")
+	result, err := insert.Exec(email, hashedPassword, "", "", time.Now(), time.Now())
 	if err != nil {
 		return err
 	}
