@@ -224,3 +224,33 @@ func UpdateUser(user *types.User) error {
 
 	return nil
 }
+
+//UpdateLastLogin ...
+func UpdateLastLogin(email string) error {
+	db := Connect()
+	defer db.Close()
+
+	_, err := GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	update, err := db.Prepare("UPDATE users SET last_login = ? WHERE email = ?")
+	if err != nil {
+		return err
+	}
+
+	result, err := update.Exec(time.Now(), email)
+	if err != nil {
+		return err
+	}
+
+	rows, err := result.RowsAffected()
+	if err != nil {
+		return err
+	} else if rows <= 0 {
+		return errors.New("ERROR: No rows were affected")
+	}
+
+	return nil
+}
