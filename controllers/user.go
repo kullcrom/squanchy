@@ -41,7 +41,7 @@ func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		user, err := db.GetUserByEmail(creds.Username)
+		password, err := db.GetUserPasswordByEmail(creds.Username)
 		if err != nil {
 			log.Println(err)
 			w.WriteHeader(http.StatusBadRequest)
@@ -49,7 +49,7 @@ func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		pwError := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(creds.Password))
+		pwError := bcrypt.CompareHashAndPassword([]byte(password), []byte(creds.Password))
 		if pwError != nil {
 			w.WriteHeader(http.StatusBadRequest)
 			w.Write([]byte("Invalid username/password"))
@@ -59,7 +59,15 @@ func (h LoginHandler) HandleLogin(w http.ResponseWriter, r *http.Request) {
 		expiration := time.Now().Add(5 * time.Minute)
 		tokenString, err := auth.GenerateToken(h.JWTSecretKey, expiration, creds.Username)
 		if err != nil || tokenString == "" {
+			log.Println(err)
 			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		err = db.UpdateLastLogin(creds.Username)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Println(err)
 			return
 		}
 
